@@ -16,13 +16,13 @@ class WeatherByHoursCollectionViewCell: UICollectionViewCell {
     
     private let timeLabel: WeatherLabel = {
         let label = WeatherLabel()
-        label.text = "23"
+        label.text = "-"
         return label
     }()
     
     private let temperatureLabel: WeatherLabel = {
         let label = WeatherLabel()
-        label.text = "5°"
+        label.text = "-"
         label.font = UIFont.systemFont(ofSize: 19)
         return label
     }()
@@ -32,7 +32,6 @@ class WeatherByHoursCollectionViewCell: UICollectionViewCell {
         imageView.backgroundColor = .black
         imageView.backgroundColor = .clear
         imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.image = UIImage(named: "sun")
         return imageView
     }()
     
@@ -50,6 +49,7 @@ class WeatherByHoursCollectionViewCell: UICollectionViewCell {
         guard let data = data else { return }
         timeLabel.text = data.stringTime
         temperatureLabel.text = data.degrees
+        weaherIconImageView.image = data.getIconImage()
     }
     
     private func layoutElements() {

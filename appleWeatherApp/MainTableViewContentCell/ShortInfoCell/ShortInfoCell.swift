@@ -13,7 +13,7 @@ class ShortInfoCell: UITableViewCell {
     let infoLabel: LabelWithPaddings = {
         let label = LabelWithPaddings()
         label.numberOfLines = 0
-        //label.text = "text"
+        label.text = "-"
         return label
     }()
     let bottomSeparatorView = SeparatorView()

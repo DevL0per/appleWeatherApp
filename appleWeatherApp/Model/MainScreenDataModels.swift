@@ -16,6 +16,7 @@ struct MainScreenWeatherModel {
 }
 
 struct MainScreenCurrentWeatherModel {
+    let city: String
     let temperature: String
     let day: String
     let maxTemperature: String

@@ -6,21 +6,29 @@
 //  Copyright © 2020 Роман Важник. All rights reserved.
 //
 
-import Foundation
+import CoreLocation
 
 protocol MainScreenPresenterProtocol {
     func getWeather()
 }
 
-class MainScreenPresenter: MainScreenPresenterProtocol {
+class MainScreenPresenter: NSObject, MainScreenPresenterProtocol {
     
-    let apiManager: ApiManager!
-    let urlManager = URLManager()
     var view: MainScreenView!
     
-    init() {
-        let url = urlManager.getURL(latitude: "37.8267", longitude: "-122.4233")!
-        apiManager = ApiManager(url: url)
+    private var apiManager: ApiManager!
+    private let urlManager = URLManager()
+    private let locationManager = CLLocationManager()
+    private var city: String!
+    
+    override init() {
+        super.init()
+        locationManager.requestWhenInUseAuthorization()
+        if CLLocationManager.locationServicesEnabled() {
+            locationManager.delegate = self
+            locationManager.desiredAccuracy = kCLLocationAccuracyKilometer
+            locationManager.startUpdatingLocation()
+        }
     }
     
     func getWeather() {
@@ -30,6 +38,7 @@ class MainScreenPresenter: MainScreenPresenterProtocol {
                 DispatchQueue.main.async {
                     let mainScreenWeatherModel = self.weatherToMainScreenWeatherModel(weather: weatherData)
                     self.view.displayWeather(mainScreenWeatherModel: mainScreenWeatherModel)
+                    
                 }
             case .Fail(let error):
                 DispatchQueue.main.async {
@@ -41,7 +50,8 @@ class MainScreenPresenter: MainScreenPresenterProtocol {
     
     private func weatherToMainScreenWeatherModel(weather: Weather) -> MainScreenWeatherModel {
         let mainScreenCurrentWeatherModel =
-            MainScreenCurrentWeatherModel(temperature: fahrenheitToCelsius(weather.currently.temperature),
+            MainScreenCurrentWeatherModel(city: city,
+                                          temperature: fahrenheitToCelsius(weather.currently.temperature)+"°",
                                           day: String("monday"),
                                           maxTemperature: fahrenheitToCelsius(weather.daily.data[0].temperatureHigh),
                                           minTemperature: fahrenheitToCelsius(weather.daily.data[0].temperatureLow),
@@ -58,16 +68,16 @@ class MainScreenPresenter: MainScreenPresenterProtocol {
                 MainScreenHourlyWeatherModel(stringTime: weather.getStringTime(),
                                              unixTime: weather.time,
                                              icon: weather.icon,
-                                             degrees: fahrenheitToCelsius(weather.temperature))
+                                             degrees: fahrenheitToCelsius(weather.temperature)+"°")
             mainScreenHourlyWeather.append(mainScreenHourlyWeatherModel)
         }
         let sunriseTimeWeather = MainScreenHourlyWeatherModel(stringTime: formatSunsetAndSunriseTime(sunriseTime),
                                                               unixTime: sunriseTime,
-                                                              icon: "",
+                                                              icon: "sunrise",
                                                               degrees: "Sunrise")
         let sunsetTimeWeather = MainScreenHourlyWeatherModel(stringTime: formatSunsetAndSunriseTime(sunsetTime),
                                                              unixTime: sunsetTime,
-                                                             icon: "",
+                                                             icon: "sunset",
                                                              degrees: "Sunset")
         mainScreenHourlyWeather.append(sunriseTimeWeather)
         mainScreenHourlyWeather.append(sunsetTimeWeather)
@@ -91,13 +101,13 @@ class MainScreenPresenter: MainScreenPresenterProtocol {
             MainContentWeatherModel(message: weather.daily.data[0].summary,
                                     sunrise: formatSunsetAndSunriseTime(sunriseTime),
                                     sunset: formatSunsetAndSunriseTime(sunsetTime),
-                                    chanceOfRain: String(weather.currently.precipProbability)+"%",
-                                    humidity: String(weather.currently.humidity),
-                                    wind: String(weather.currently.windSpeed),
-                                    feelsLike: String(weather.currently.apparentTemperature),
-                                    precipitation: String(weather.currently.precipIntensity),
-                                    pressure: String(weather.currently.pressure),
-                                    visiblity: String(weather.currently.visibility),
+                                    chanceOfRain: String(Int(weather.currently.precipProbability*100))+"%",
+                                    humidity: String(Int(weather.currently.humidity*100))+"%",
+                                    wind: "w "+String(weather.currently.windSpeed)+" km/h",
+                                    feelsLike: fahrenheitToCelsius(weather.currently.apparentTemperature)+"°",
+                                    precipitation: String(weather.currently.precipIntensity)+" cm",
+                                    pressure: String(weather.currently.pressure)+" hPa",
+                                    visiblity: String(weather.currently.visibility)+" km",
                                     uvIndex: String(weather.currently.uvIndex))
         let mainScreenWeatherModel = MainScreenWeatherModel(mainScreenCurrentWeatherModel: mainScreenCurrentWeatherModel,
                                                             mainContentWeatherModel: mainContentWeatherModel, mainScreenHourlyWeatherModel: mainScreenHourlyWeather, mainScreenDailyWeatherModel: mainScreenDailyWeather)
@@ -105,7 +115,7 @@ class MainScreenPresenter: MainScreenPresenterProtocol {
     }
     
     private func fahrenheitToCelsius(_ temperature: Double) -> String {
-        return String(Int((temperature-32)/(9/5))) + "°"
+        return String(Int((temperature-32)/(9/5)))
     }
 
     private func formatSunsetAndSunriseTime(_ unixDate: Double) -> String {
@@ -114,5 +124,25 @@ class MainScreenPresenter: MainScreenPresenterProtocol {
         dateFormatter.dateFormat = "HH:mm"
         dateFormatter.timeZone = .current
         return dateFormatter.string(from: date)
+    }
+    
+    
+}
+
+extension MainScreenPresenter: CLLocationManagerDelegate {
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        if let location = locations.first {
+            let url = urlManager.getURL(latitude: String(location.coordinate.latitude),
+                                        longitude: String(location.coordinate.longitude))!
+            apiManager = ApiManager(url: url)
+            location.fetchCity { [unowned self] (city, error)  in
+                if let city = city {
+                    self.city = city
+                } else {
+                    self.city = "Not Found"
+                }
+                self.getWeather()
+            }
+        }
     }
 }

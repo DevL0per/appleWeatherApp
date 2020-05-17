@@ -9,10 +9,9 @@
 import UIKit
 
 fileprivate struct Constants {
-//    static let cellWidth: CGFloat = 40
 }
 
-class WeatherByHoursCell: UITableViewCell {
+class WeatherByHoursView: UIView {
     
     let topSeparatorView = SeparatorView()
     let bottomSeparatorView = SeparatorView()
@@ -28,16 +27,17 @@ class WeatherByHoursCell: UITableViewCell {
         layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
-        collectionView.contentInset = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 40)
+        collectionView.contentInset = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 15)
         collectionView.register(WeatherByHoursCollectionViewCell.self, forCellWithReuseIdentifier: "WeatherByHoursCell")
         collectionView.delegate = self
         collectionView.dataSource = self
         collectionView.backgroundColor = .clear
+        collectionView.showsVerticalScrollIndicator = false
         return collectionView
     }()
     
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
+    override init(frame: CGRect) {
+        super.init(frame: frame)
         layoutElements()
     }
     
@@ -66,7 +66,7 @@ class WeatherByHoursCell: UITableViewCell {
     }
 }
 
-extension WeatherByHoursCell: UICollectionViewDelegateFlowLayout, UICollectionViewDataSource {
+extension WeatherByHoursView: UICollectionViewDelegateFlowLayout, UICollectionViewDataSource {
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         viewModel?.count ?? 0

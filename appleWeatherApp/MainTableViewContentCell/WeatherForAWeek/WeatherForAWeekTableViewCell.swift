@@ -62,7 +62,7 @@ extension WeatherForAWeekTableViewCell: UITableViewDelegate, UITableViewDataSour
         let cell = tableView.dequeueReusableCell(withIdentifier: "weatherForAWeekCell", for: indexPath) as! WeatherForAWeekCell
         cell.backgroundColor = .clear
         if let data = viewModel?[indexPath.row] {
-            cell.setupElements(day: data.day, maxTemperature: data.maxTemperature, minTemperature: data.minTemperature)
+            cell.setupElements(viewModel: data)
         }
         return cell
     }

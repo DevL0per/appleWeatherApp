@@ -22,6 +22,8 @@ enum WeatherIconCases: String {
     case partlyCloudyDay = "partly-cloudy-day"
     case partlyCloudyNight = "partly-cloudy-night"
     case unpredictedIcon = "unpredicted-icon"
+    case sunset = "sunset"
+    case sunrise = "sunrise"
 
     init(value: String) {
         switch value {
@@ -35,6 +37,8 @@ enum WeatherIconCases: String {
         case "cloudy": self = .cloudy
         case "partly-cloudy-day": self = .partlyCloudyDay
         case "partly-cloudy-night": self = .partlyCloudyNight
+        case "sunset": self = .sunset
+        case "sunrise": self = .sunrise
         default: self = .unpredictedIcon
         }
     }

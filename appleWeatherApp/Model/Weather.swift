@@ -40,7 +40,7 @@ struct CurrentWeater: Decodable {
     let humidity: Double
     let windSpeed: Double
     let pressure: Double
-    let precipIntensity: Int
+    let precipIntensity: Double
     let visibility: Double
     let uvIndex: Int
     let summary: String
