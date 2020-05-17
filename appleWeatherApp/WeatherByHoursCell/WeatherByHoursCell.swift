@@ -16,6 +16,11 @@ class WeatherByHoursCell: UITableViewCell {
     
     let topSeparatorView = SeparatorView()
     let bottomSeparatorView = SeparatorView()
+    var viewModel: [MainScreenHourlyWeatherModel]? {
+        didSet {
+            collectionView.reloadData()
+        }
+    }
     
     lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -23,7 +28,7 @@ class WeatherByHoursCell: UITableViewCell {
         layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
-        collectionView.contentInset = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 15)
+        collectionView.contentInset = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 40)
         collectionView.register(WeatherByHoursCollectionViewCell.self, forCellWithReuseIdentifier: "WeatherByHoursCell")
         collectionView.delegate = self
         collectionView.dataSource = self
@@ -64,11 +69,12 @@ class WeatherByHoursCell: UITableViewCell {
 extension WeatherByHoursCell: UICollectionViewDelegateFlowLayout, UICollectionViewDataSource {
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        10
+        viewModel?.count ?? 0
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "WeatherByHoursCell", for: indexPath) as! WeatherByHoursCollectionViewCell
+        cell.setupElements(data: viewModel?[indexPath.row])
         return cell
     }
     

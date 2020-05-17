@@ -12,6 +12,7 @@ class WeatherForAWeekCell: UITableViewCell {
    
     private let dayLabel: WeatherLabel = {
         let label = WeatherLabel()
+        label.font = UIFont.systemFont(ofSize: 20)
         label.text = "Friday"
         return label
     }()
@@ -27,13 +28,14 @@ class WeatherForAWeekCell: UITableViewCell {
     
     private let maxTemperatureLabel: WeatherLabel = {
         let label = WeatherLabel()
-        label.font = UIFont.systemFont(ofSize: 18, weight: .medium)
+        label.font = UIFont.systemFont(ofSize: 20)
         label.text = "12"
         return label
     }()
     
     private let minTemperatureLabel: WeatherLabel = {
         let label = WeatherLabel()
+        label.font = UIFont.systemFont(ofSize: 20)
         label.text = "1"
         return label
     }()
@@ -45,6 +47,12 @@ class WeatherForAWeekCell: UITableViewCell {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    func setupElements(day: String, maxTemperature: String, minTemperature: String) {
+        dayLabel.text = day
+        maxTemperatureLabel.text = maxTemperature
+        minTemperatureLabel.text = minTemperature
     }
     
     private func layoutElements() {
@@ -60,13 +68,13 @@ class WeatherForAWeekCell: UITableViewCell {
         stackView.axis = .horizontal
         stackView.alignment = .center
         stackView.distribution = .equalSpacing
-        stackView.spacing = 20
+        stackView.spacing = 25
         stackView.translatesAutoresizingMaskIntoConstraints = false
         stackView.addArrangedSubview(maxTemperatureLabel)
         stackView.addArrangedSubview(minTemperatureLabel)
         
         addSubview(stackView)
-        stackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10).isActive = true
+        stackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -15).isActive = true
         stackView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
     }
 }

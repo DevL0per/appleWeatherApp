@@ -11,6 +11,11 @@ import UIKit
 class WeatherForAWeekTableViewCell: UITableViewCell {
     
     let bottomSeparatorView = SeparatorView()
+    var viewModel: [MainScreenDailyWeatherModel]? {
+        didSet {
+            weatherTableView.reloadData()
+        }
+    }
     
     private lazy var weatherTableView: UITableView = {
         let tableView = UITableView()
@@ -50,12 +55,15 @@ class WeatherForAWeekTableViewCell: UITableViewCell {
 
 extension WeatherForAWeekTableViewCell: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        9
+        viewModel?.count ?? 0
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "weatherForAWeekCell", for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: "weatherForAWeekCell", for: indexPath) as! WeatherForAWeekCell
         cell.backgroundColor = .clear
+        if let data = viewModel?[indexPath.row] {
+            cell.setupElements(day: data.day, maxTemperature: data.maxTemperature, minTemperature: data.minTemperature)
+        }
         return cell
     }
     

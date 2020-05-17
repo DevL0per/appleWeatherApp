@@ -13,7 +13,7 @@ class ShortInfoCell: UITableViewCell {
     let infoLabel: LabelWithPaddings = {
         let label = LabelWithPaddings()
         label.numberOfLines = 0
-        label.text = "fdfdsfsudhfusdhugihduighdfuhgidhfugudhfughdufiguihdfuighdfdhgiufdhg"
+        //label.text = "text"
         return label
     }()
     let bottomSeparatorView = SeparatorView()
@@ -25,6 +25,10 @@ class ShortInfoCell: UITableViewCell {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    func setupElements(text: String) {
+        infoLabel.text = text
     }
     
     private func layoutElements() {

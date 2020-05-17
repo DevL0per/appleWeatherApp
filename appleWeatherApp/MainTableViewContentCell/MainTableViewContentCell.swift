@@ -14,8 +14,19 @@ import UIKit
 //    case weatherForAWeekTableViewCell = 2...6
 //}
 
+struct MainSectionData {
+    let leftTitleText: String
+    let rightTitleText: String
+    let leftText: String
+    let rightText: String
+}
+
+protocol MainTableViewContentCellDelegate {
+    func changeTableViewScrollState()
+}
+
 class MainTableViewContentCell: UITableViewCell {
-    private lazy var weatherTableView: UITableView = {
+    fileprivate lazy var weatherTableView: UITableView = {
         let tableView = UITableView()
         tableView.delegate = self
         tableView.dataSource = self
@@ -24,10 +35,19 @@ class MainTableViewContentCell: UITableViewCell {
         tableView.register(WeatherDataCell.self, forCellReuseIdentifier: "weatherDataCell")
         tableView.register(WeatherForAWeekTableViewCell.self, forCellReuseIdentifier: "weatherForAWeekTableViewCell")
         tableView.backgroundColor = .clear
-        tableView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 40, right: 0)
-        //tableView.isScrollEnabled = false
+        tableView.isScrollEnabled = false
+        tableView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 45, right: 0)
         return tableView
     }()
+     
+    var viewModel: MainScreenWeatherModel? {
+        didSet {
+            createDataArrayForMainSection()
+            weatherTableView.reloadData()
+        }
+    }
+    var delegate: MainTableViewContentCellDelegate!
+    private var mainSectionData: [MainSectionData]?
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -45,6 +65,51 @@ class MainTableViewContentCell: UITableViewCell {
         weatherTableView.trailingAnchor.constraint(equalTo: trailingAnchor).isActive = true
         weatherTableView.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
     }
+    
+    func createDataArrayForMainSection() {
+        guard let viewModel = viewModel else { return }
+        mainSectionData = []
+        for number in 0...4 {
+            var leftTitleText = ""
+            var rightTitleText = ""
+            var leftText = ""
+            var rightText = ""
+            switch number {
+            case 0:
+                leftTitleText = "SUNRISE"
+                rightTitleText = "SUNSET"
+                leftText = viewModel.mainContentWeatherModel.sunset
+                rightText = viewModel.mainContentWeatherModel.sunrise
+            case 1:
+                leftTitleText = "CHANCE OF RAIN"
+                rightTitleText = "HUMIDITY"
+                leftText = viewModel.mainContentWeatherModel.chanceOfRain
+                rightText = viewModel.mainContentWeatherModel.humidity
+            case 2:
+                leftTitleText = "WIND"
+                rightTitleText = "FEELS LIKE"
+                leftText = viewModel.mainContentWeatherModel.wind
+                rightText = viewModel.mainContentWeatherModel.feelsLike
+            case 3:
+                leftTitleText = "PRECIPITATION"
+                rightTitleText = "PRESSURE"
+                leftText = viewModel.mainContentWeatherModel.precipitation
+                rightText = viewModel.mainContentWeatherModel.pressure
+            case 4:
+                leftTitleText = "VISIBILITY"
+                rightTitleText = "UV INDEX"
+                leftText = viewModel.mainContentWeatherModel.visiblity
+                rightText = viewModel.mainContentWeatherModel.uvIndex
+            default:
+                break
+            }
+            let data = MainSectionData(leftTitleText: leftTitleText,
+                                                  rightTitleText: rightTitleText,
+                                                  leftText: leftText,
+                                                  rightText: rightText)
+            mainSectionData?.append(data)
+        }
+    }
 }
 
 extension MainTableViewContentCell: UITableViewDelegate, UITableViewDataSource {
@@ -57,10 +122,15 @@ extension MainTableViewContentCell: UITableViewDelegate, UITableViewDataSource {
         switch indexPath.row {
         case 0:
             cell = WeatherForAWeekTableViewCell()
+            (cell as! WeatherForAWeekTableViewCell).viewModel = viewModel?.mainScreenDailyWeatherModel
         case 1:
             cell = ShortInfoCell()
+            (cell as! ShortInfoCell).setupElements(text: viewModel?.mainContentWeatherModel.message ?? "")
         case 2...6:
-             cell = WeatherDataCell()
+            cell = WeatherDataCell()
+            if let mainSectionData = mainSectionData {
+                (cell as! WeatherDataCell).setupElements(mainSectionData: mainSectionData[indexPath.row-2])
+            }
         default:
             cell = UITableViewCell()
         }
@@ -71,13 +141,34 @@ extension MainTableViewContentCell: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         switch indexPath.row {
         case 0:
-            return 9*40
+            return 7*40
         case 1:
             return UITableView.automaticDimension
         default:
-            return 45
+            return 55
         }
     }
 }
 
 
+extension MainTableViewContentCell: MainScreenViewControllerDelegate {
+    
+    func scrollViewShouldStartScrolling(scroll: UIScrollView) {
+//        self.weatherTableView.isScrollEnabled = true
+    }
+    
+    func changeMainTableViewScrollState(isEnable: Bool) {
+        weatherTableView.isScrollEnabled = isEnable
+    }
+}
+
+extension MainTableViewContentCell: UIScrollViewDelegate {
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        if scrollView.contentOffset.y <= 0 {
+            scrollView.contentOffset = .zero
+            scrollView.isScrollEnabled = false
+            delegate.changeTableViewScrollState()
+        }
+    }
+}

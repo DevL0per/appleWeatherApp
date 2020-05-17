@@ -23,7 +23,7 @@ class WeatherByHoursCollectionViewCell: UICollectionViewCell {
     private let temperatureLabel: WeatherLabel = {
         let label = WeatherLabel()
         label.text = "5°"
-        label.font = UIFont.systemFont(ofSize: 19, weight: .medium)
+        label.font = UIFont.systemFont(ofSize: 19)
         return label
     }()
     
@@ -44,6 +44,12 @@ class WeatherByHoursCollectionViewCell: UICollectionViewCell {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    func setupElements(data: MainScreenHourlyWeatherModel?) {
+        guard let data = data else { return }
+        timeLabel.text = data.stringTime
+        temperatureLabel.text = data.degrees
     }
     
     private func layoutElements() {

@@ -22,7 +22,7 @@ class WeatherDataCell: UITableViewCell {
         let label = WeatherLabel()
         label.numberOfLines = 0
         label.text = "05:08"
-        label.font = UIFont.systemFont(ofSize: 20, weight: .bold)
+        label.font = UIFont.systemFont(ofSize: 24)
         return label
     }()
     private let rightTopLabel: WeatherLabel = {
@@ -37,7 +37,7 @@ class WeatherDataCell: UITableViewCell {
         let label = WeatherLabel()
         label.numberOfLines = 0
         label.text = "21:03"
-        label.font = UIFont.systemFont(ofSize: 20, weight: .bold)
+        label.font = UIFont.systemFont(ofSize: 24)
         return label
     }()
     
@@ -50,6 +50,13 @@ class WeatherDataCell: UITableViewCell {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    func setupElements(mainSectionData: MainSectionData) {
+        leftTopLabel.text = mainSectionData.leftTitleText
+        rightTopLabel.text = mainSectionData.rightTitleText
+        leftBottomLabel.text = mainSectionData.leftText
+        rightBottomLabel.text = mainSectionData.rightText
     }
     
     private func layoutElements() {

@@ -13,8 +13,25 @@ fileprivate struct Constants {
     static let tableViewCellHeight: CGFloat = 120
 }
 
-class MainScreenViewController: UIViewController {
+protocol MainScreenViewControllerDelegate {
+    func changeMainTableViewScrollState(isEnable: Bool)
+    func scrollViewShouldStartScrolling(scroll: UIScrollView)
+}
+
+protocol MainScreenView {
+    func displayWeather(mainScreenWeatherModel: MainScreenWeatherModel)
+    func displayErrorMessage(errorMessage: String)
+}
+
+var secondCell: UITableViewCell!
+
+class MainScreenViewController: UIViewController, MainScreenView {
+
+    var delegate: MainScreenViewControllerDelegate!
+    var presenter: MainScreenPresenterProtocol!
+    private let configurator: MainScreenConfiguratorProtocol = MainScreenConfigurator()
     
+    fileprivate var previousEnableStateEnable = false
     private var offsetHeight = Constants.offsetHeight
     fileprivate var isTableViewEnabled = false
     fileprivate var isScrollEnable = false
@@ -54,7 +71,11 @@ class MainScreenViewController: UIViewController {
         return label
     }()
     
-    private lazy var tableView: UITableView = {
+    private var viewModel: MainScreenWeatherModel?
+    
+//    var gesture = UIPanGestureRecognizer(target: self, action: #selector(panG))
+    
+    lazy var tableView: UITableView = {
         let tableView = UITableView()
         tableView.contentInset = UIEdgeInsets(top: Constants.offsetHeight,
                                               left: 0, bottom: 0, right: 0)
@@ -65,7 +86,8 @@ class MainScreenViewController: UIViewController {
         tableView.register(WeatherByHoursCell.self, forCellReuseIdentifier: "weatherByHoursCell")
         tableView.register(MainTableViewContentCell.self, forCellReuseIdentifier: "mainTableViewContentCell")
         tableView.backgroundColor = .clear
-
+//        tableView.isScrollEnabled = false
+//        tableView.addGestureRecognizer(gesture)
         return tableView
     }()
 
@@ -75,13 +97,41 @@ class MainScreenViewController: UIViewController {
         layoutTopContentView()
         layoutTableView()
         layoutTopLabels()
+        configurator.configure(view: self)
+        presenter.getWeather()
     }
+//
+//    var previsY: CGFloat?
+//    @objc func panG(recognizer: UIPanGestureRecognizer) {
+//        let tr = recognizer.translation(in: view)
+//        if previsY == nil {
+//            previsY = tr.y
+//        } else {
+//            tableView.contentInset = UIEdgeInsets(top: Constants.offsetHeight,
+//            left: 0, bottom: 0, right: 0)
+//            previsY = tr.y
+//        }
+//    }
+    
+    func displayWeather(mainScreenWeatherModel: MainScreenWeatherModel) {
+        temperatureLabel.text = mainScreenWeatherModel.mainScreenCurrentWeatherModel.temperature
+        todayLabel.text = MainScreenCurrentWeatherModel.getCurrentDay()
+        shortInfoAboutWeatherLabel.text = mainScreenWeatherModel.mainScreenCurrentWeatherModel.sammery
+        viewModel = mainScreenWeatherModel
+        tableView.reloadData()
+    }
+    
+    func displayErrorMessage(errorMessage: String) {
+        
+    }
+    
+    //MARK: - Layout elements
     
     private func layoutTopContentView() {
         view.addSubview(topContentView)
         topContentView.backgroundColor = .clear
         topContentView.topAnchor.constraint(equalTo: view.topAnchor, constant: 12).isActive = true
-        topContentView.heightAnchor.constraint(equalToConstant: 100).isActive = true
+        topContentView.heightAnchor.constraint(equalToConstant: 120).isActive = true
         topContentView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
         topContentView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
         
@@ -97,9 +147,9 @@ class MainScreenViewController: UIViewController {
         
         topContentView.addSubview(stackView)
         stackView.centerXAnchor.constraint(equalTo: topContentView.centerXAnchor).isActive = true
-        stackView.bottomAnchor.constraint(equalTo: topContentView.bottomAnchor).isActive = true
+        stackView.bottomAnchor.constraint(equalTo: topContentView.bottomAnchor, constant: -20).isActive = true
     }
-
+    
     private func layoutTableView() {
         view.addSubview(tableView)
         tableView.topAnchor.constraint(equalTo: topContentView.bottomAnchor).isActive = true
@@ -110,8 +160,8 @@ class MainScreenViewController: UIViewController {
     }
     
     private func layoutTopLabels() {
-        tableView.addSubview(temperatureLabel)
-        temperatureLabel.topAnchor.constraint(equalTo: tableView.topAnchor, constant: (-Constants.offsetHeight))
+        view.addSubview(temperatureLabel)
+        temperatureLabel.topAnchor.constraint(equalTo: topContentView.bottomAnchor)
             .isActive = true
         temperatureLabel.centerXAnchor.constraint(equalTo: tableView.centerXAnchor).isActive = true
         
@@ -129,9 +179,12 @@ class MainScreenViewController: UIViewController {
         stackView.bottomAnchor.constraint(equalTo: tableView.bottomAnchor, constant: -15).isActive = true
     }
     
+    private func bottomViewLayout() {
+    }
 }
 
 
+//MARK: - TableViewDelegate
 extension MainScreenViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -142,8 +195,13 @@ extension MainScreenViewController: UITableViewDelegate, UITableViewDataSource {
         var cell: UITableViewCell!
         if indexPath.row == 0 {
             cell = WeatherByHoursCell()
+            (cell as! WeatherByHoursCell).viewModel = viewModel?.mainScreenHourlyWeatherModel
         } else {
             cell = MainTableViewContentCell()
+            secondCell = cell
+            (cell as! MainTableViewContentCell).delegate = self
+            delegate = (cell as! MainScreenViewControllerDelegate)
+            (cell as! MainTableViewContentCell).viewModel = viewModel
         }
         cell.backgroundColor = .clear
         return cell
@@ -153,19 +211,23 @@ extension MainScreenViewController: UITableViewDelegate, UITableViewDataSource {
         if indexPath.row == 0 {
             return Constants.tableViewCellHeight
         } else {
-            return (6*40)+(9*40)-100
+            return UIScreen.main.bounds.height/1.5
         }
     }
-    
 }
 
+//MARK: - ScrollViewDelegate
 extension MainScreenViewController: UIScrollViewDelegate {
+    
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         if isTableViewEnabled {
             let inset = -scrollView.contentOffset.y
             var alpha = 1 * inset / Constants.offsetHeight
-            if alpha <= 0 {
-                tableView.isScrollEnabled = false
+            print(scrollView.contentOffset.y)
+            if inset <= 0.1 {
+                scrollView.contentOffset = .zero
+                scrollView.isScrollEnabled = false
+                self.delegate.changeMainTableViewScrollState(isEnable: true)
             }
             if alpha < 1 {
                 alpha-=0.35
@@ -182,7 +244,9 @@ extension MainScreenViewController: UIScrollViewDelegate {
                 self.todayStaticLabel.alpha = 0
                 self.todayLabel.alpha = 0
                 self.temperatureLabel.alpha = 0
-                scrollView.contentOffset = CGPoint(x: 0, y: 0)
+                scrollView.contentOffset = .zero
+                print("1 and 2 not")
+                self.delegate.changeMainTableViewScrollState(isEnable: true)
             }
         } else {
             UIView.animate(withDuration: 0.2) { [unowned self] in
@@ -190,7 +254,18 @@ extension MainScreenViewController: UIScrollViewDelegate {
                 self.todayLabel.alpha = 1
                 self.temperatureLabel.alpha = 1
                 scrollView.contentOffset = CGPoint(x: 0, y: -Constants.offsetHeight)
+                print("2 yes")
+                self.tableView.isScrollEnabled = true
+                self.delegate.changeMainTableViewScrollState(isEnable: false)
             }
         }
     }
+
 }
+
+extension MainScreenViewController: MainTableViewContentCellDelegate {
+    func changeTableViewScrollState() {
+        tableView.isScrollEnabled = true
+    }
+}
+
