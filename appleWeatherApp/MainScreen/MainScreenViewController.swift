@@ -18,9 +18,40 @@ fileprivate struct Constants {
     static let defaultScreenWidth: CGFloat = 375
 }
 
+enum BackgroundColorCase: String {
+    case night = "night"
+    case day = "day"
+    case precipitation = "precipitation"
+    
+    init(value: String) {
+        switch value {
+        case "night":
+            self = .night
+        case "day":
+            self = .day
+        case "precipitation":
+            self = .precipitation
+        default:
+            self = .day
+        }
+    }
+    
+    func getColor() -> UIColor {
+        switch self {
+        case .day:
+            return #colorLiteral(red: 0.239831388, green: 0.5518291593, blue: 0.7405184507, alpha: 1)
+        case .night:
+            return #colorLiteral(red: 0.05488184839, green: 0.07055146247, blue: 0.1697204709, alpha: 1)
+        case .precipitation:
+            return #colorLiteral(red: 0.45586133, green: 0.5314458013, blue: 0.5995544791, alpha: 1)
+        }
+    }
+}
+
 protocol MainScreenView {
     func displayWeather(mainScreenWeatherModel: MainScreenWeatherModel)
     func displayErrorMessage(errorMessage: String)
+    func setBackroundColor(bacgroundColorCase: BackgroundColorCase)
 }
 
 class MainScreenViewController: UIViewController, MainScreenView {
@@ -140,7 +171,7 @@ class MainScreenViewController: UIViewController, MainScreenView {
         tableView.reloadData()
     }
     
-    // if there will be some mistake display it in alert
+    // if there is some mistake display it in alert
     func displayErrorMessage(errorMessage: String) {
         let alert = AlertManager.shared.createAlert(title: "Error",
                                                     subtitle: errorMessage,
@@ -148,13 +179,21 @@ class MainScreenViewController: UIViewController, MainScreenView {
         present(alert, animated: true, completion: nil)
     }
     
+    func setBackroundColor(bacgroundColorCase: BackgroundColorCase) {
+        let color = bacgroundColorCase.getColor()
+        view.backgroundColor = color
+        weatherByHoursView.backgroundColor = color
+        backgroundView.backgroundColor = color
+        bottomView.backgroundColor = color
+    }
+    
     private func setTodayLabelText() {
         let hour = Calendar.current.component(.hour, from: Date())
         switch hour {
         case 6..<12:
-            todayLabel.text = "TODAY"
+            todayStaticLabel.text = "TODAY"
         default:
-            todayLabel.text = "TONIGHT"
+            todayStaticLabel.text = "TONIGHT"
         }
     }
     
@@ -183,7 +222,7 @@ class MainScreenViewController: UIViewController, MainScreenView {
         stackView.bottomAnchor.constraint(equalTo: topContentView.bottomAnchor, constant: -20).isActive = true
     }
     
-    // weatherByHoursView topAnchor (if the view will reach the top, Anchor's changed)
+    // weatherByHoursView topAnchor (if the view reachs the top, Anchor will be changed)
     var topAnchor: NSLayoutConstraint?
     var isTopAnchorConnectedToTableView = true
     private func layoutTableView() {
@@ -388,7 +427,7 @@ extension MainScreenViewController: UIScrollViewDelegate {
         temperatureLabel.alpha = temperatureAplha
     }
     
-    // if user has stopped scrollView and don't reach the top - scroll to the top
+    // if user stops scrolling scrollView and doesn't reach the top - scroll to the top
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         let offset = -scrollView.contentOffset.y
         if (offset > Constants.tempretureSectionHeight

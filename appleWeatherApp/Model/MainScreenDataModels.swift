@@ -30,7 +30,7 @@ struct MainScreenCurrentWeatherModel: Codable {
 }
 
 struct MainScreenHourlyWeatherModel: Codable {
-    let stringTime: String
+    var stringTime: String
     let unixTime: Double
     let icon: String
     let degrees: String

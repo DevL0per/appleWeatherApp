@@ -13,15 +13,27 @@ class UserDefaultsManager {
     static let shared = UserDefaultsManager()
     private let defaults = UserDefaults.standard
     private let id = "weaher"
+    private let backgroundColorId = "backroundCase"
     
-    func saveProgress(weaherViewModel: MainScreenWeatherModel) {
+    func saveWeaher(weaherViewModel: MainScreenWeatherModel) {
         defaults.set(try? PropertyListEncoder().encode(weaherViewModel), forKey: id)
     }
     
-    func getProgress() -> MainScreenWeatherModel? {
+    func getWeaher() -> MainScreenWeatherModel? {
         if let data = defaults.value(forKey: id) as? Data {
-            let weaher = try? PropertyListDecoder().decode(MainScreenWeatherModel.self, from: data)
-            return weaher
+            return try? PropertyListDecoder().decode(MainScreenWeatherModel.self, from: data)
+        } else {
+            return nil
+        }
+    }
+    
+    func saveBackroundColor(backgroundColorCase: String) {
+        defaults.set(backgroundColorCase, forKey: backgroundColorId)
+    }
+    
+    func getBackgroundColor() -> String? {
+        if let backgroundColorCase = defaults.value(forKey: backgroundColorId) as? String {
+            return backgroundColorCase
         } else {
             return nil
         }

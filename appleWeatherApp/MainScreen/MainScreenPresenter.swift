@@ -47,6 +47,8 @@ class MainScreenPresenter: NSObject, MainScreenPresenterProtocol {
                     let mainScreenWeatherModel = self.weatherToMainScreenWeatherModel(weather: weatherData)
                     self.saveDataInUserDefaults(data: mainScreenWeatherModel)
                     DispatchQueue.main.async {
+                        self.findBackroundColorToMainScreen(iconName:
+                            mainScreenWeatherModel.mainScreenHourlyWeatherModel[0].icon)
                         self.view.displayWeather(mainScreenWeatherModel: mainScreenWeatherModel)
                     }
                 case .Fail(let error):
@@ -65,11 +67,35 @@ class MainScreenPresenter: NSObject, MainScreenPresenterProtocol {
         }
     }
     
+    private func findBackroundColorToMainScreen(iconName: String) {
+        var backgroundColorCase: BackgroundColorCase!
+        switch iconName {
+        case "clear-day", "sunset", "sunrise", "partly-cloudy-day":
+            backgroundColorCase = .day
+        case "clear-night", "partly-cloudy-night":
+            backgroundColorCase = .night
+        case "rain", "snow", "sleet", "wind", "fog":
+            backgroundColorCase = .precipitation
+        case "cloudy":
+            let hour = Calendar.current.component(.hour, from: Date())
+            switch hour {
+            case 6..<12:
+                backgroundColorCase = .day
+            default:
+                backgroundColorCase = .night
+            }
+        default:
+            backgroundColorCase = .day
+        }
+        UserDefaultsManager.shared.saveBackroundColor(backgroundColorCase: backgroundColorCase.rawValue)
+        view.setBackroundColor(bacgroundColorCase: backgroundColorCase)
+    }
+    
     // save data from intenet to userDefault
     private func saveDataInUserDefaults(data: MainScreenWeatherModel) {
         let queue = DispatchQueue(label: "userDefaultsQueue", qos: .background, attributes: .concurrent)
         queue.async {
-            UserDefaultsManager.shared.saveProgress(weaherViewModel: data)
+            UserDefaultsManager.shared.saveWeaher(weaherViewModel: data)
         }
     }
     
@@ -86,7 +112,10 @@ class MainScreenPresenter: NSObject, MainScreenPresenterProtocol {
     
     // get data from userDefaults
     func getSavedData() {
-        guard let weaher = UserDefaultsManager.shared.getProgress() else { return }
+        guard let weaher = UserDefaultsManager.shared.getWeaher() else { return }
+        guard let colorStringCase = UserDefaultsManager.shared.getBackgroundColor() else { return }
+        let bacgroundColorCase = BackgroundColorCase(value: colorStringCase)
+        view.setBackroundColor(bacgroundColorCase: bacgroundColorCase)
         view.displayWeather(mainScreenWeatherModel: weaher)
     }
     
@@ -153,6 +182,7 @@ class MainScreenPresenter: NSObject, MainScreenPresenterProtocol {
         mainScreenHourlyWeather.sort { (one, two) -> Bool in
             return one.unixTime < two.unixTime
         }
+        mainScreenHourlyWeather[0].stringTime = "Now"
         
         // daily weatherModel
         var mainScreenDailyWeather: [MainScreenDailyWeatherModel] = []
