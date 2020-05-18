@@ -10,6 +10,7 @@ import CoreLocation
 
 protocol MainScreenPresenterProtocol {
     func getWeather()
+    func getSavedData()
 }
 
 class MainScreenPresenter: NSObject, MainScreenPresenterProtocol {
@@ -39,13 +40,14 @@ class MainScreenPresenter: NSObject, MainScreenPresenterProtocol {
             if timer != nil {
                 timer!.invalidate()
             }
+            // trying to get data from internet
             apiManager.getWeather {[unowned self] (weather) in
                 switch weather {
                 case .Success(let weatherData):
+                    let mainScreenWeatherModel = self.weatherToMainScreenWeatherModel(weather: weatherData)
+                    self.saveDataInUserDefaults(data: mainScreenWeatherModel)
                     DispatchQueue.main.async {
-                        let mainScreenWeatherModel = self.weatherToMainScreenWeatherModel(weather: weatherData)
                         self.view.displayWeather(mainScreenWeatherModel: mainScreenWeatherModel)
-                        
                     }
                 case .Fail(let error):
                     DispatchQueue.main.async {
@@ -55,21 +57,41 @@ class MainScreenPresenter: NSObject, MainScreenPresenterProtocol {
             }
         } else {
             if !isErrorMessageWasShown {
-                let userInfo = [
-                    NSLocalizedDescriptionKey :
-                        NSLocalizedString("fail",
-                                          value: "Fail loading data, this application requires internet connection",
-                                          comment: "")
-                ]
-                let error = NSError(domain: ApiManager.domain, code: 651, userInfo: userInfo)
-                self.view.displayErrorMessage(errorMessage: error.localizedDescription)
+                createErrorMessage(value: "Fail loading data, this application requires internet connection",
+                                   code: 651)
                 isErrorMessageWasShown = true
                 createTimer()
             }
         }
     }
     
-    // если интернет отключен он будет спрашивать есть ли соеденение каждые 5 секунд
+    // save data from intenet to userDefault
+    private func saveDataInUserDefaults(data: MainScreenWeatherModel) {
+        let queue = DispatchQueue(label: "userDefaultsQueue", qos: .background, attributes: .concurrent)
+        queue.async {
+            UserDefaultsManager.shared.saveProgress(weaherViewModel: data)
+        }
+    }
+    
+    private func createErrorMessage(value: String, code: Int) {
+        let userInfo = [
+            NSLocalizedDescriptionKey :
+                NSLocalizedString("fail",
+                                  value: value,
+                                  comment: "")
+        ]
+        let error = NSError(domain: ApiManager.domain, code: code, userInfo: userInfo)
+        self.view.displayErrorMessage(errorMessage: error.localizedDescription)
+    }
+    
+    // get data from userDefaults
+    func getSavedData() {
+        guard let weaher = UserDefaultsManager.shared.getProgress() else { return }
+        view.displayWeather(mainScreenWeatherModel: weaher)
+    }
+    
+   // if internet swiched off and weaher wasn't received
+   // this timer will call getWeather function every 5 seconds and try to get weather data
     private func createTimer() {
         if timer == nil {
             timer = Timer.scheduledTimer(timeInterval: 5.0,
@@ -80,6 +102,7 @@ class MainScreenPresenter: NSObject, MainScreenPresenterProtocol {
         }
     }
     
+    // convert Weather to MainScreenWeatherModel
     private func weatherToMainScreenWeatherModel(weather: Weather) -> MainScreenWeatherModel {
         let mainScreenCurrentWeatherModel =
             MainScreenCurrentWeatherModel(city: city,
@@ -90,26 +113,41 @@ class MainScreenPresenter: NSObject, MainScreenPresenterProtocol {
                                           sammery: String(weather.currently.summary))
         // hourly weatherModel
         var mainScreenHourlyWeather: [MainScreenHourlyWeatherModel] = []
-        let sunriseTime = weather.daily.data[1].sunriseTime
-        let sunsetTime = weather.daily.data[0].sunsetTime
+        var sunriseTime: Double!
+        var sunsetTime: Double!
         
+        let currentTime = weather.hourly.data[0].time
+        
+        if weather.daily.data[0].sunriseTime > currentTime {
+            sunriseTime = weather.daily.data[0].sunriseTime
+        } else {
+            sunriseTime = weather.daily.data[1].sunriseTime
+        }
+        if weather.daily.data[0].sunsetTime > currentTime {
+            sunsetTime = weather.daily.data[0].sunsetTime
+        } else {
+            sunsetTime = weather.daily.data[1].sunsetTime
+        }
         
         for weather in weather.hourly.data {
             let mainScreenHourlyWeatherModel =
                 MainScreenHourlyWeatherModel(stringTime: weather.getStringTime(),
                                              unixTime: weather.time,
                                              icon: weather.icon,
-                                             degrees: fahrenheitToCelsius(weather.temperature)+"°")
+                                             degrees: fahrenheitToCelsius(weather.temperature)+"°",
+                                             precipProbability: String(Int(weather.precipProbability*100))+"%")
             mainScreenHourlyWeather.append(mainScreenHourlyWeatherModel)
         }
         let sunriseTimeWeather = MainScreenHourlyWeatherModel(stringTime: formatSunsetAndSunriseTime(sunriseTime),
                                                               unixTime: sunriseTime,
                                                               icon: "sunrise",
-                                                              degrees: "Sunrise")
+                                                              degrees: "Sunrise",
+                                                              precipProbability: "")
         let sunsetTimeWeather = MainScreenHourlyWeatherModel(stringTime: formatSunsetAndSunriseTime(sunsetTime),
                                                              unixTime: sunsetTime,
                                                              icon: "sunset",
-                                                             degrees: "Sunset")
+                                                             degrees: "Sunset",
+                                                             precipProbability: "")
         mainScreenHourlyWeather.append(sunriseTimeWeather)
         mainScreenHourlyWeather.append(sunsetTimeWeather)
         mainScreenHourlyWeather.sort { (one, two) -> Bool in
@@ -160,7 +198,9 @@ class MainScreenPresenter: NSObject, MainScreenPresenterProtocol {
     
 }
 
+//MARK: - CLLocationManagerDelegate
 extension MainScreenPresenter: CLLocationManagerDelegate {
+    //trying to get user location and city
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         if let location = locations.first {
             let url = urlManager.getURL(latitude: String(location.coordinate.latitude),
@@ -176,4 +216,9 @@ extension MainScreenPresenter: CLLocationManagerDelegate {
             }
         }
     }
+    
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        createErrorMessage(value: "Failed to determine location, please go to Settings and turn on the permissions", code: 6)
+    }
+    
 }

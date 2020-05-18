@@ -56,6 +56,7 @@ struct HourlyWeather: Decodable {
     let time: Double
     let icon: String
     let temperature: Double
+    let precipProbability: Double
     
     func getStringTime() -> String {
        let date = Date(timeIntervalSince1970: time)

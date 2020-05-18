@@ -12,7 +12,6 @@ class WeatherDataCell: UITableViewCell {
     
     private let leftTopLabel: WeatherLabel = {
         let label = WeatherLabel()
-        label.numberOfLines = 0
         label.textColor = .lightGray
         label.text = "-"
         label.font = UIFont.systemFont(ofSize: 12)
@@ -20,14 +19,12 @@ class WeatherDataCell: UITableViewCell {
     }()
     private let leftBottomLabel: WeatherLabel = {
         let label = WeatherLabel()
-        label.numberOfLines = 0
         label.text = "-"
         label.font = UIFont.systemFont(ofSize: 24)
         return label
     }()
     private let rightTopLabel: WeatherLabel = {
         let label = WeatherLabel()
-        label.numberOfLines = 0
         label.text = "-"
         label.font = UIFont.systemFont(ofSize: 12)
         label.textColor = .lightGray
@@ -35,7 +32,6 @@ class WeatherDataCell: UITableViewCell {
     }()
     private let rightBottomLabel: WeatherLabel = {
         let label = WeatherLabel()
-        label.numberOfLines = 0
         label.text = "-"
         label.font = UIFont.systemFont(ofSize: 24)
         return label

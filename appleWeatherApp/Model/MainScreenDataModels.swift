@@ -8,14 +8,14 @@
 
 import UIKit
 
-struct MainScreenWeatherModel {
+struct MainScreenWeatherModel: Codable {
     let mainScreenCurrentWeatherModel: MainScreenCurrentWeatherModel
     let mainContentWeatherModel: MainContentWeatherModel
     let mainScreenHourlyWeatherModel: [MainScreenHourlyWeatherModel]
     let mainScreenDailyWeatherModel: [MainScreenDailyWeatherModel]
 }
 
-struct MainScreenCurrentWeatherModel {
+struct MainScreenCurrentWeatherModel: Codable {
     let city: String
     let temperature: String
     let day: String
@@ -29,11 +29,12 @@ struct MainScreenCurrentWeatherModel {
     }
 }
 
-struct MainScreenHourlyWeatherModel {
+struct MainScreenHourlyWeatherModel: Codable {
     let stringTime: String
     let unixTime: Double
     let icon: String
     let degrees: String
+    let precipProbability: String
     
     func getIconImage() -> UIImage {
         let iconCase = WeatherIconCases(value: icon)
@@ -42,7 +43,7 @@ struct MainScreenHourlyWeatherModel {
 }
 
 
-struct MainScreenDailyWeatherModel {
+struct MainScreenDailyWeatherModel: Codable {
     let day: String
     let icon: String
     let maxTemperature: String
@@ -54,7 +55,7 @@ struct MainScreenDailyWeatherModel {
     }
 }
 
-struct MainContentWeatherModel {
+struct MainContentWeatherModel: Codable {
     let message: String
     let sunrise: String
     let sunset: String

@@ -27,9 +27,15 @@ class WeatherByHoursCollectionViewCell: UICollectionViewCell {
         return label
     }()
     
+    private let chanceOfPrecipitationLabel: WeatherLabel = {
+        let label = WeatherLabel()
+        label.textColor = #colorLiteral(red: 0.3952505589, green: 0.7498927712, blue: 0.9492647052, alpha: 1)
+        label.font = UIFont.systemFont(ofSize: 12)
+        return label
+    }()
+    
     private let weaherIconImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.backgroundColor = .black
         imageView.backgroundColor = .clear
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
@@ -47,9 +53,14 @@ class WeatherByHoursCollectionViewCell: UICollectionViewCell {
     
     func setupElements(data: MainScreenHourlyWeatherModel?) {
         guard let data = data else { return }
+        chanceOfPrecipitationLabel.isHidden = true
         timeLabel.text = data.stringTime
         temperatureLabel.text = data.degrees
         weaherIconImageView.image = data.getIconImage()
+        if data.icon == "rain" || data.icon == "snow" {
+            chanceOfPrecipitationLabel.isHidden = false
+            chanceOfPrecipitationLabel.text = data.precipProbability
+        }
     }
     
     private func layoutElements() {
@@ -68,5 +79,9 @@ class WeatherByHoursCollectionViewCell: UICollectionViewCell {
         stackView.trailingAnchor.constraint(equalTo: trailingAnchor).isActive = true
         stackView.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
         stackView.leadingAnchor.constraint(equalTo: leadingAnchor).isActive = true
+        
+        addSubview(chanceOfPrecipitationLabel)
+        chanceOfPrecipitationLabel.bottomAnchor.constraint(equalTo: weaherIconImageView.topAnchor).isActive = true
+        chanceOfPrecipitationLabel.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
     }
 }

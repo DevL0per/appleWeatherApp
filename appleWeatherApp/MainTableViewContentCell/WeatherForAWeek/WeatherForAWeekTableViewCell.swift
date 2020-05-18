@@ -8,6 +8,10 @@
 
 import UIKit
 
+fileprivate struct Constants {
+    static let cellHeight: CGFloat = 40
+}
+
 class WeatherForAWeekTableViewCell: UITableViewCell {
     
     let bottomSeparatorView = SeparatorView()
@@ -68,6 +72,6 @@ extension WeatherForAWeekTableViewCell: UITableViewDelegate, UITableViewDataSour
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        40
+        Constants.cellHeight
     }
 }

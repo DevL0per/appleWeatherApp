@@ -8,9 +8,6 @@
 
 import UIKit
 
-fileprivate struct Constants {
-}
-
 class WeatherByHoursView: UIView {
     
     let topSeparatorView = SeparatorView()
@@ -21,7 +18,7 @@ class WeatherByHoursView: UIView {
         }
     }
     
-    lazy var collectionView: UICollectionView = {
+    private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
         layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize

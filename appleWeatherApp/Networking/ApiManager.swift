@@ -15,7 +15,6 @@ enum WeatherData {
 
 protocol ApiManagerProtocol {
     var urlSession: URLSession { get }
-    
     func getWeather(complition: @escaping((WeatherData)->Void))
 }
 

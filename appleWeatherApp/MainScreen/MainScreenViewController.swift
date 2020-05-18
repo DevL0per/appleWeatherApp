@@ -18,18 +18,6 @@ fileprivate struct Constants {
     static let defaultScreenWidth: CGFloat = 375
 }
 
-struct MainSectionData {
-    let leftTitleText: String
-    let rightTitleText: String
-    let leftText: String
-    let rightText: String
-}
-
-protocol MainScreenViewControllerDelegate {
-    func changeMainTableViewScrollState(isEnable: Bool)
-    func scrollViewShouldStartScrolling(scroll: UIScrollView)
-}
-
 protocol MainScreenView {
     func displayWeather(mainScreenWeatherModel: MainScreenWeatherModel)
     func displayErrorMessage(errorMessage: String)
@@ -37,9 +25,7 @@ protocol MainScreenView {
 
 class MainScreenViewController: UIViewController, MainScreenView {
     
-    var delegate: MainScreenViewControllerDelegate!
     var presenter: MainScreenPresenterProtocol!
-    
     private let configurator: MainScreenConfiguratorProtocol = MainScreenConfigurator()
     
     private var weatherByHoursView = WeatherByHoursView()
@@ -131,6 +117,7 @@ class MainScreenViewController: UIViewController, MainScreenView {
         layoutTableView()
         layoutTopLabels()
         configurator.configure(view: self)
+        presenter.getSavedData()
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -138,18 +125,21 @@ class MainScreenViewController: UIViewController, MainScreenView {
     }
     
     func displayWeather(mainScreenWeatherModel: MainScreenWeatherModel) {
+        // setup labels
         cityLabel.text = mainScreenWeatherModel.mainScreenCurrentWeatherModel.city
         temperatureLabel.text = mainScreenWeatherModel.mainScreenCurrentWeatherModel.temperature
         todayLabel.text = MainScreenCurrentWeatherModel.getCurrentDay()
         shortInfoAboutWeatherLabel.text = mainScreenWeatherModel.mainScreenCurrentWeatherModel.sammery
         maxTemperatureLabel.text = mainScreenWeatherModel.mainScreenCurrentWeatherModel.maxTemperature
         minTemperatureLabel.text = mainScreenWeatherModel.mainScreenCurrentWeatherModel.minTemperature
+        // setup viewModel and reload tableView
         viewModel = mainScreenWeatherModel
         weatherByHoursView.viewModel = mainScreenWeatherModel.mainScreenHourlyWeatherModel
         createDataArrayForMainSection()
         tableView.reloadData()
     }
     
+    // if there will be some mistake display it in alert
     func displayErrorMessage(errorMessage: String) {
         let alert = AlertManager.shared.createAlert(title: "Error",
                                                     subtitle: errorMessage,
@@ -167,7 +157,7 @@ class MainScreenViewController: UIViewController, MainScreenView {
         topContentView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
         topContentView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
         
-        //labels setup
+        // stackView for labels setup
         let stackView = UIStackView()
         stackView.axis = .vertical
         stackView.alignment = .center
@@ -182,15 +172,18 @@ class MainScreenViewController: UIViewController, MainScreenView {
         stackView.bottomAnchor.constraint(equalTo: topContentView.bottomAnchor, constant: -20).isActive = true
     }
     
+    // weatherByHoursView topAnchor (if the view will reach the top, Anchor's changed)
     var topAnchor: NSLayoutConstraint?
     var isTopAnchorConnectedToTableView = true
     private func layoutTableView() {
+        // layout tableView
         view.addSubview(tableView)
         tableView.topAnchor.constraint(equalTo: topContentView.bottomAnchor).isActive = true
         tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
         tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
         tableView.bottomAnchor.constraint(equalTo: bottomSeparatorView.topAnchor).isActive = true
         
+        // layout tableView weatherByHoursView
         tableView.addSubview(backgroundView)
         tableView.addSubview(weatherByHoursView)
         backgroundView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
@@ -214,6 +207,7 @@ class MainScreenViewController: UIViewController, MainScreenView {
             .isActive = true
         temperatureLabel.centerXAnchor.constraint(equalTo: tableView.centerXAnchor).isActive = true
         
+        // layout minTemperatureLabel and maxTemperatureLabel
         let minMaxLabelsStackView = UIStackView()
         minMaxLabelsStackView.axis = .horizontal
         minMaxLabelsStackView.alignment = .center
@@ -227,6 +221,7 @@ class MainScreenViewController: UIViewController, MainScreenView {
         minMaxLabelsStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -15).isActive = true
         minMaxLabelsStackView.bottomAnchor.constraint(equalTo: weatherByHoursView.topAnchor, constant: -15).isActive = true
         
+        // layout todayLabel and todayStaticLabel
         let stackView = UIStackView()
         stackView.axis = .horizontal
         stackView.alignment = .center
@@ -258,6 +253,7 @@ class MainScreenViewController: UIViewController, MainScreenView {
         bottomSeparatorView.heightAnchor.constraint(equalToConstant: 1).isActive = true
     }
     
+    // create an array for weatherDataCell
     private var mainSectionData: [MainSectionData]?
     func createDataArrayForMainSection() {
         guard let viewModel = viewModel else { return }
@@ -271,8 +267,8 @@ class MainScreenViewController: UIViewController, MainScreenView {
             case 0:
                 leftTitleText = "SUNRISE"
                 rightTitleText = "SUNSET"
-                leftText = viewModel.mainContentWeatherModel.sunset
-                rightText = viewModel.mainContentWeatherModel.sunrise
+                leftText = viewModel.mainContentWeatherModel.sunrise
+                rightText = viewModel.mainContentWeatherModel.sunset
             case 1:
                 leftTitleText = "CHANCE OF RAIN"
                 rightTitleText = "HUMIDITY"
@@ -328,6 +324,7 @@ extension MainScreenViewController: UITableViewDelegate, UITableViewDataSource {
                 (cell as! WeatherDataCell).setupElements(mainSectionData: mainSectionData[indexPath.row-2])
             }
         case 6:
+            // WeatherDataCell without bottomSeparator
             cell = WeatherDataCell()
             if let mainSectionData = mainSectionData {
                 (cell as! WeatherDataCell).setupElements(mainSectionData: mainSectionData[indexPath.row-2],
@@ -357,11 +354,13 @@ extension MainScreenViewController: UITableViewDelegate, UITableViewDataSource {
 //MARK: - ScrollViewDelegate
 extension MainScreenViewController: UIScrollViewDelegate {
     
+    // culculate alpha depending on the scrollView offset
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        let inset = -scrollView.contentOffset.y
-        var alpha = 1 * (inset-Constants.tempretureSectionHeight) / (Constants.offsetHeight)
+        let offset = -scrollView.contentOffset.y
+        var alpha = 1 * (offset-Constants.tempretureSectionHeight) / (Constants.offsetHeight)
         var temperatureAplha = alpha
-        if inset <= Constants.tempretureSectionHeight {
+        // if scrollView has riched the top change topAnchor
+        if offset <= Constants.tempretureSectionHeight {
             stopHourlyWeatherSection()
         } else {
             attachHourlyWeathernToTableView()
@@ -377,6 +376,7 @@ extension MainScreenViewController: UIScrollViewDelegate {
         temperatureLabel.alpha = temperatureAplha
     }
     
+    // if user has stopped scrollView and don't reach the top - scroll to the top
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         let offset = -scrollView.contentOffset.y
         if (offset > Constants.tempretureSectionHeight
@@ -395,6 +395,7 @@ extension MainScreenViewController: UIScrollViewDelegate {
         }
     }
     
+    // attach object to topView
     fileprivate func stopHourlyWeatherSection() {
         if isTopAnchorConnectedToTableView {
             if let topAnchor = topAnchor {
@@ -406,6 +407,7 @@ extension MainScreenViewController: UIScrollViewDelegate {
         }
     }
     
+    // attach object to tableView back
     fileprivate func attachHourlyWeathernToTableView() {
         if !isTopAnchorConnectedToTableView {
             if let topAnchor = topAnchor {

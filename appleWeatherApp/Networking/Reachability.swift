@@ -7,6 +7,7 @@
 //
 import SystemConfiguration
 
+// check is internet swiched on
 class Reachability {
     class func isConnectedToNetwork() -> Bool {
         var zeroAddress = sockaddr_in()
