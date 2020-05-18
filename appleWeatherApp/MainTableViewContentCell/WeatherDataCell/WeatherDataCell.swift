@@ -59,8 +59,8 @@ class WeatherDataCell: UITableViewCell {
     private func layoutElements() {
         addSubview(bottomSeparatorView)
         bottomSeparatorView.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
-        bottomSeparatorView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10).isActive = true
-        bottomSeparatorView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10).isActive = true
+        bottomSeparatorView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 15).isActive = true
+        bottomSeparatorView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -15).isActive = true
         bottomSeparatorView.heightAnchor.constraint(equalToConstant: 1).isActive = true
         
         let leftStackView = UIStackView()
@@ -85,7 +85,7 @@ class WeatherDataCell: UITableViewCell {
         
         addSubview(rightStackView)
         
-        leftStackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10).isActive = true
+        leftStackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 15).isActive = true
         leftStackView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
         
         rightStackView.leadingAnchor.constraint(equalTo: centerXAnchor).isActive = true
