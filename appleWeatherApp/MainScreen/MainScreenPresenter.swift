@@ -20,6 +20,8 @@ class MainScreenPresenter: NSObject, MainScreenPresenterProtocol {
     private let urlManager = URLManager()
     private let locationManager = CLLocationManager()
     private var city: String!
+    private var timer: Timer?
+    private var isErrorMessageWasShown = false
     
     override init() {
         super.init()
@@ -31,20 +33,50 @@ class MainScreenPresenter: NSObject, MainScreenPresenterProtocol {
         }
     }
     
-    func getWeather() {
-        apiManager.getWeather {[unowned self] (weather) in
-            switch weather {
-            case .Success(let weatherData):
-                DispatchQueue.main.async {
-                    let mainScreenWeatherModel = self.weatherToMainScreenWeatherModel(weather: weatherData)
-                    self.view.displayWeather(mainScreenWeatherModel: mainScreenWeatherModel)
-                    
-                }
-            case .Fail(let error):
-                DispatchQueue.main.async {
-                    self.view.displayErrorMessage(errorMessage: error.localizedDescription)
+    @objc func getWeather() {
+        // if intertet switched on
+        if Reachability.isConnectedToNetwork() {
+            if timer != nil {
+                timer!.invalidate()
+            }
+            apiManager.getWeather {[unowned self] (weather) in
+                switch weather {
+                case .Success(let weatherData):
+                    DispatchQueue.main.async {
+                        let mainScreenWeatherModel = self.weatherToMainScreenWeatherModel(weather: weatherData)
+                        self.view.displayWeather(mainScreenWeatherModel: mainScreenWeatherModel)
+                        
+                    }
+                case .Fail(let error):
+                    DispatchQueue.main.async {
+                        self.view.displayErrorMessage(errorMessage: error.localizedDescription)
+                    }
                 }
             }
+        } else {
+            if !isErrorMessageWasShown {
+                let userInfo = [
+                    NSLocalizedDescriptionKey :
+                        NSLocalizedString("fail",
+                                          value: "Fail loading data, this application requires internet connection",
+                                          comment: "")
+                ]
+                let error = NSError(domain: ApiManager.domain, code: 651, userInfo: userInfo)
+                self.view.displayErrorMessage(errorMessage: error.localizedDescription)
+                isErrorMessageWasShown = true
+                createTimer()
+            }
+        }
+    }
+    
+    // если интернет отключен он будет спрашивать есть ли соеденение каждые 5 секунд
+    private func createTimer() {
+        if timer == nil {
+            timer = Timer.scheduledTimer(timeInterval: 5.0,
+                                         target: self,
+                                         selector: #selector(getWeather),
+                                         userInfo: nil,
+                                         repeats: true)
         }
     }
     
@@ -62,7 +94,6 @@ class MainScreenPresenter: NSObject, MainScreenPresenterProtocol {
         let sunsetTime = weather.daily.data[0].sunsetTime
         
         
-//        formatSunsetAndSunriseTime
         for weather in weather.hourly.data {
             let mainScreenHourlyWeatherModel =
                 MainScreenHourlyWeatherModel(stringTime: weather.getStringTime(),

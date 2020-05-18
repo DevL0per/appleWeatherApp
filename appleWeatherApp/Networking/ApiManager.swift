@@ -32,7 +32,14 @@ class ApiManager: ApiManagerProtocol {
     
     private func getJsonData(url: URL, complition: @escaping(Data?, URLResponse?, Error?)->Void) {
         urlSession.dataTask(with: url) { (data, response, error) in
-            if let error = error {
+            if let _ = error {
+                let userInfo = [
+                    NSLocalizedDescriptionKey :
+                    NSLocalizedString("fail",
+                                      value: "Fail loading data",
+                                      comment: "")
+                ]
+                let error = NSError(domain: ApiManager.domain, code: 202, userInfo: userInfo)
                 complition(nil, nil, error)
                 return
             }
@@ -56,7 +63,8 @@ class ApiManager: ApiManagerProtocol {
             } catch {
                 print(error)
                 let userInfo = [
-                    NSLocalizedDescriptionKey : NSLocalizedString("fail", value: "incorrect data", comment: "")
+                    NSLocalizedDescriptionKey : NSLocalizedString("fail", value: "There are some mistakes with data",
+                                                                  comment: "")
                 ]
                 let error = NSError(domain: ApiManager.domain, code: 202, userInfo: userInfo)
                 complition(.Fail(error))

@@ -14,6 +14,8 @@ fileprivate struct Constants {
     static let numberOfRowsInSection = 7
     static let heightForFirstRow: CGFloat = 40
     static let heightForMainContentCells: CGFloat = 55
+    static let bottomContentViewHeight: CGFloat = 30
+    static let defaultScreenWidth: CGFloat = 375
 }
 
 struct MainSectionData {
@@ -47,6 +49,9 @@ class MainScreenViewController: UIViewController, MainScreenView {
         return view
     }()
     
+    private let bottomView = ContentView()
+    private let bottomSeparatorView = SeparatorView()
+    
     private var topContentView: ContentView = {
         let view = ContentView()
         return view
@@ -66,7 +71,13 @@ class MainScreenViewController: UIViewController, MainScreenView {
     private let temperatureLabel: WeatherLabel = {
         let label = WeatherLabel()
         label.text = "0"
-        label.font = UIFont.systemFont(ofSize: 90, weight: .thin)
+        var fontSize: CGFloat!
+        if UIScreen.main.bounds.width > Constants.defaultScreenWidth {
+            fontSize = 100
+        } else {
+            fontSize = 90
+        }
+        label.font = UIFont.systemFont(ofSize: fontSize, weight: .thin)
         return label
     }()
     private let todayLabel: UILabel = {
@@ -107,6 +118,8 @@ class MainScreenViewController: UIViewController, MainScreenView {
         tableView.backgroundColor = .clear
         tableView.contentInset = UIEdgeInsets(top: Constants.offsetHeight+Constants.tempretureSectionHeight,
                                               left: 0, bottom: 0, right: 0)
+        tableView.separatorStyle = .none
+        tableView.showsVerticalScrollIndicator = false
         return tableView
     }()
     
@@ -114,6 +127,7 @@ class MainScreenViewController: UIViewController, MainScreenView {
         super.viewDidLoad()
         view.backgroundColor = #colorLiteral(red: 0.239831388, green: 0.5518291593, blue: 0.7405184507, alpha: 1)
         layoutTopContentView()
+        bottomViewLayout()
         layoutTableView()
         layoutTopLabels()
         configurator.configure(view: self)
@@ -137,7 +151,10 @@ class MainScreenViewController: UIViewController, MainScreenView {
     }
     
     func displayErrorMessage(errorMessage: String) {
-        
+        let alert = AlertManager.shared.createAlert(title: "Error",
+                                                    subtitle: errorMessage,
+                                                    actionTitle: "Ok")
+        present(alert, animated: true, completion: nil)
     }
     
     //MARK: - Layout elements
@@ -172,7 +189,7 @@ class MainScreenViewController: UIViewController, MainScreenView {
         tableView.topAnchor.constraint(equalTo: topContentView.bottomAnchor).isActive = true
         tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
         tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
-        tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
+        tableView.bottomAnchor.constraint(equalTo: bottomSeparatorView.topAnchor).isActive = true
         
         tableView.addSubview(backgroundView)
         tableView.addSubview(weatherByHoursView)
@@ -225,6 +242,20 @@ class MainScreenViewController: UIViewController, MainScreenView {
     }
     
     private func bottomViewLayout() {
+        let safeBottomAnchor = view.layoutMarginsGuide.bottomAnchor
+        view.addSubview(bottomView)
+        bottomView.backgroundColor = view.backgroundColor
+        bottomView.translatesAutoresizingMaskIntoConstraints = false
+        bottomView.heightAnchor.constraint(equalToConstant: Constants.bottomContentViewHeight).isActive = true
+        bottomView.bottomAnchor.constraint(equalTo: safeBottomAnchor).isActive = true
+        bottomView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
+        bottomView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
+        
+        view.addSubview(bottomSeparatorView)
+        bottomSeparatorView.bottomAnchor.constraint(equalTo: bottomView.topAnchor).isActive = true
+        bottomSeparatorView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
+        bottomSeparatorView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
+        bottomSeparatorView.heightAnchor.constraint(equalToConstant: 1).isActive = true
     }
     
     private var mainSectionData: [MainSectionData]?
@@ -291,15 +322,22 @@ extension MainScreenViewController: UITableViewDelegate, UITableViewDataSource {
         case 1:
             cell = ShortInfoCell()
             (cell as! ShortInfoCell).setupElements(text: viewModel?.mainContentWeatherModel.message ?? "")
-        case 2...6:
+        case 2...5:
             cell = WeatherDataCell()
             if let mainSectionData = mainSectionData {
                 (cell as! WeatherDataCell).setupElements(mainSectionData: mainSectionData[indexPath.row-2])
+            }
+        case 6:
+            cell = WeatherDataCell()
+            if let mainSectionData = mainSectionData {
+                (cell as! WeatherDataCell).setupElements(mainSectionData: mainSectionData[indexPath.row-2],
+                                                         hideBottomSeparator: true)
             }
         default:
             cell = UITableViewCell()
         }
         cell.backgroundColor = .clear
+        cell.isUserInteractionEnabled = false
         return cell
     }
     

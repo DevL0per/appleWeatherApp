@@ -7,16 +7,6 @@
 //
 
 import Foundation
-//
-//enum Days {
-//    case "Sunday"
-//    "Monday",
-//    "Tuesday",
-//    "Wednesday",
-//    "Thursday",
-//    "Friday",
-//    "Saturday"
-//}
 
 struct Weather: Decodable {
     let currently: CurrentWeater

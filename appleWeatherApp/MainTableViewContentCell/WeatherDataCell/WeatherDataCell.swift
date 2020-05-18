@@ -52,11 +52,12 @@ class WeatherDataCell: UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func setupElements(mainSectionData: MainSectionData) {
+    func setupElements(mainSectionData: MainSectionData, hideBottomSeparator: Bool = false) {
         leftTopLabel.text = mainSectionData.leftTitleText
         rightTopLabel.text = mainSectionData.rightTitleText
         leftBottomLabel.text = mainSectionData.leftText
         rightBottomLabel.text = mainSectionData.rightText
+        bottomSeparatorView.isHidden = hideBottomSeparator
     }
     
     private func layoutElements() {

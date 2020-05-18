@@ -32,7 +32,7 @@ class WeatherByHoursView: UIView {
         collectionView.delegate = self
         collectionView.dataSource = self
         collectionView.backgroundColor = .clear
-        collectionView.showsVerticalScrollIndicator = false
+        collectionView.showsHorizontalScrollIndicator = false
         return collectionView
     }()
     
@@ -75,6 +75,7 @@ extension WeatherByHoursView: UICollectionViewDelegateFlowLayout, UICollectionVi
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "WeatherByHoursCell", for: indexPath) as! WeatherByHoursCollectionViewCell
         cell.setupElements(data: viewModel?[indexPath.row])
+        cell.isUserInteractionEnabled = false
         return cell
     }
     
