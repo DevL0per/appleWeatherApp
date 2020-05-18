@@ -75,7 +75,7 @@ class MainScreenViewController: UIViewController, MainScreenView {
     private let todayStaticLabel: WeatherLabel = {
         let label = WeatherLabel()
         label.text = "TODAY"
-        label.font = UIFont.systemFont(ofSize: 14, weight: .medium)
+        label.font = UIFont.systemFont(ofSize: 15, weight: .medium)
         return label
     }()
     private let maxTemperatureLabel: WeatherLabel = {
@@ -117,6 +117,7 @@ class MainScreenViewController: UIViewController, MainScreenView {
         layoutTableView()
         layoutTopLabels()
         configurator.configure(view: self)
+        setTodayLabelText()
         presenter.getSavedData()
     }
     
@@ -145,6 +146,16 @@ class MainScreenViewController: UIViewController, MainScreenView {
                                                     subtitle: errorMessage,
                                                     actionTitle: "Ok")
         present(alert, animated: true, completion: nil)
+    }
+    
+    private func setTodayLabelText() {
+        let hour = Calendar.current.component(.hour, from: Date())
+        switch hour {
+        case 6..<12:
+            todayLabel.text = "TODAY"
+        default:
+            todayLabel.text = "TONIGHT"
+        }
     }
     
     //MARK: - Layout elements
@@ -224,7 +235,7 @@ class MainScreenViewController: UIViewController, MainScreenView {
         // layout todayLabel and todayStaticLabel
         let stackView = UIStackView()
         stackView.axis = .horizontal
-        stackView.alignment = .center
+        stackView.alignment = .leading
         stackView.distribution = .equalSpacing
         stackView.spacing = 5
         stackView.translatesAutoresizingMaskIntoConstraints = false
@@ -234,6 +245,7 @@ class MainScreenViewController: UIViewController, MainScreenView {
         tableView.addSubview(stackView)
         stackView.leadingAnchor.constraint(equalTo: tableView.leadingAnchor, constant: 15).isActive = true
         stackView.bottomAnchor.constraint(equalTo: weatherByHoursView.topAnchor, constant: -15).isActive = true
+        todayStaticLabel.centerYAnchor.constraint(equalTo: todayLabel.centerYAnchor).isActive = true
     }
     
     private func bottomViewLayout() {
