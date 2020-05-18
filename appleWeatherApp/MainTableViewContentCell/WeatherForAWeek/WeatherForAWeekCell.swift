@@ -65,17 +65,14 @@ class WeatherForAWeekCell: UITableViewCell {
         weaherIconImageView.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
         weaherIconImageView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
         
-        let stackView = UIStackView()
-        stackView.axis = .horizontal
-        stackView.alignment = .center
-        stackView.distribution = .equalSpacing
-        stackView.spacing = 25
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        stackView.addArrangedSubview(maxTemperatureLabel)
-        stackView.addArrangedSubview(minTemperatureLabel)
+        addSubview(maxTemperatureLabel)
+        addSubview(minTemperatureLabel)
         
-        addSubview(stackView)
-        stackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -15).isActive = true
-        stackView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
+        minTemperatureLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -15).isActive = true
+        minTemperatureLabel.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
+        
+        maxTemperatureLabel.centerXAnchor.constraint(equalTo: minTemperatureLabel.trailingAnchor,
+                                                     constant: -65).isActive = true
+        maxTemperatureLabel.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
     }
 }
