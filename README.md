@@ -1,3 +1,7 @@
 iOS 13 Native Weather App Clone
 =====================
-![AppleWeather](https://user-images.githubusercontent.com/55629794/82232838-d0968d80-9937-11ea-8197-b36e64818621.gif)
+![AppleWeatherGif](https://user-images.githubusercontent.com/55629794/82245259-448e6100-994b-11ea-9d23-99571b1acb4e.gif)
+
+Info
+-----------------------------------
+Weather data is taken from DarkSkyApi. Application is written using MVP architecture pattern.
