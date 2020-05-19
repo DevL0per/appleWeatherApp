@@ -15,13 +15,16 @@ class WeatherByHoursView: UIView {
     var viewModel: [MainScreenHourlyWeatherModel]? {
         didSet {
             collectionView.reloadData()
+            collectionView.scrollToItem(at: IndexPath(item: 0, section: 0),
+                                        at: .left, animated: false)
         }
     }
     
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
-        layout.scrollDirection = .horizontal
         layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
+        layout.itemSize = UICollectionViewFlowLayout.automaticSize
+        layout.scrollDirection = .horizontal
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.contentInset = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 15)

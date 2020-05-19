@@ -37,7 +37,6 @@ class WeatherByHoursCollectionViewCell: UICollectionViewCell {
     private let weaherIconImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.backgroundColor = .clear
-        imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
     
@@ -51,9 +50,16 @@ class WeatherByHoursCollectionViewCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        chanceOfPrecipitationLabel.isHidden = true
+        weaherIconImageView.image = nil
+        timeLabel.text = ""
+        temperatureLabel.text = ""
+    }
+
     func setupElements(data: MainScreenHourlyWeatherModel?) {
         guard let data = data else { return }
-        chanceOfPrecipitationLabel.isHidden = true
         timeLabel.text = data.stringTime
         temperatureLabel.text = data.degrees
         weaherIconImageView.image = data.getIconImage()

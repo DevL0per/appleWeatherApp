@@ -23,6 +23,7 @@ class MainScreenPresenter: NSObject, MainScreenPresenterProtocol {
     private var city: String!
     private var timer: Timer?
     private var isErrorMessageWasShown = false
+    private var isgetWeatherFinished = false
     
     override init() {
         super.init()
@@ -232,17 +233,22 @@ class MainScreenPresenter: NSObject, MainScreenPresenterProtocol {
 extension MainScreenPresenter: CLLocationManagerDelegate {
     //trying to get user location and city
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        if let location = locations.first {
-            let url = urlManager.getURL(latitude: String(location.coordinate.latitude),
-                                        longitude: String(location.coordinate.longitude))!
-            apiManager = ApiManager(url: url)
-            location.fetchCity { [unowned self] (city, error)  in
-                if let city = city {
-                    self.city = city
-                } else {
-                    self.city = "Not Found"
+        DispatchQueue.global().async { [unowned self] in
+            if let location = locations.first {
+                let url = self.urlManager.getURL(latitude: String(location.coordinate.latitude),
+                                                 longitude: String(location.coordinate.longitude))!
+                self.apiManager = ApiManager(url: url)
+                location.fetchCity { [unowned self] (city, error)  in
+                    if let city = city {
+                        self.city = city
+                    } else {
+                        self.city = "Not Found"
+                    }
+                    if !self.isgetWeatherFinished {
+                        self.getWeather()
+                    }
+                    self.isgetWeatherFinished = true
                 }
-                self.getWeather()
             }
         }
     }

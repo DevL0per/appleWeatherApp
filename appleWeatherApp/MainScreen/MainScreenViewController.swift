@@ -141,9 +141,8 @@ class MainScreenViewController: UIViewController, MainScreenView {
     }()
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
-        return self.style
+        .lightContent
     }
-    var style:UIStatusBarStyle = .lightContent
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -186,11 +185,6 @@ class MainScreenViewController: UIViewController, MainScreenView {
     
     func setBackroundColor(bacgroundColorCase: BackgroundColorCase) {
         let color = bacgroundColorCase.getColor()
-        if bacgroundColorCase == .night {
-           self.style = .lightContent
-        } else {
-            self.style = .darkContent
-        }
         view.backgroundColor = color
         weatherByHoursView.backgroundColor = color
         backgroundView.backgroundColor = color
