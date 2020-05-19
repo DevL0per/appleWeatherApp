@@ -1,6 +1,6 @@
 iOS 13 Native Weather App Clone
 =====================
-![AppleWeatherGif](https://user-images.githubusercontent.com/55629794/82245259-448e6100-994b-11ea-9d23-99571b1acb4e.gif)
+![appleWeather](https://user-images.githubusercontent.com/55629794/82314628-c5447000-99d2-11ea-87a4-c09ec5791b5d.gif)
 
 Info
 -----------------------------------
